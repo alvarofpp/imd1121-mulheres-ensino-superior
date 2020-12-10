@@ -1,7 +1,6 @@
 import altair as alt
 import streamlit as st
 from questions import Question
-from vega_datasets import data
 
 
 class Question02(Question):
@@ -18,10 +17,10 @@ class Question02(Question):
         }
 
     def render(self, df):
-        st.markdown("# Segundos ciclos IMD")
+        st.markdown('# Segundos ciclos IMD')
 
         self.options = {
-            'ciclo': st.selectbox("Ciclo", ['Primeiro', 'Segundo', ]),
+            'ciclo': st.selectbox('Ciclo', ['Primeiro', 'Segundo', ]),
         }
 
         df_graduacao = df[df.nivel_ensino == 'GRADUAÇÃO']
@@ -34,11 +33,10 @@ class Question02(Question):
         })
 
         alt_chart = alt.Chart(df_chart).mark_bar().encode(
-            x=alt.X('sexo:O', title='Gênero'),
+            x=alt.X('sexo:O', title=None),
             y=alt.Y('count(sexo):Q', title='Quantidade de ingressantes'),
             color='sexo:N',
             column=alt.Column('ano_ingresso:N', title='Ano de ingresso'),
-            text='count(sexo):Q',
             tooltip=[alt.Tooltip('count(sexo):Q', title='Quantidade de ingressantes'), alt.Tooltip('sexo', title='Gênero'),]
         )
 
