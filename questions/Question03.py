@@ -31,17 +31,18 @@ class Question03(Question):
             'F': 'Feminino',
             'M': 'Masculino',
         })
+        df_chart = df_chart.sort_values('percentual', ascending=False)
 
-        alt_chart = alt.Chart(df_chart).mark_bar(opacity=0.7).encode(
+        alt_chart = alt.Chart(df_chart).mark_bar().encode(
             x=alt.X('nivel_ensino:N', title=None),
-            y=alt.Y('sum(percentual):Q', stack=False),
-            column=alt.Column('tipo:N'),
-            color='sexo',
-            tooltip=['sexo', 'sum(percentual):Q']
-        ).configure_view(
-            strokeOpacity=0
+            y=alt.Y('sum(percentual):Q', stack=False, title='% dos ingressantes'),
+            column=alt.Column('tipo:N', title=None),
+            color=alt.Color('sexo', title='Gênero'),
+            tooltip=[
+                alt.Tooltip('sexo', title='Gênero'),
+                alt.Tooltip('sum(percentual):Q', title='% dos ingressantes')
+            ],
         )
-        st.dataframe(df_chart)
         st.altair_chart(alt_chart)
 
     def _calcular_percentuais_by_nivel_ensino(self, df, nivel_ensino):
