@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from questions import Question01, Question02, Question03
+from questions import Question01, Question02, Question03, Question04
 
 
 @st.cache
@@ -45,7 +45,7 @@ def main():
     st.markdown('----------')
 
     datasets = load_data()
-    for question in [Question01(), Question02(), Question03()]:
+    for question in [Question01(), Question02(), Question03(), Question04()]:
         question.render(datasets['discentes'])
 
 

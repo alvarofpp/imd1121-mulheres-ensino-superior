@@ -4,27 +4,24 @@ import streamlit as st
 from questions import Question
 
 
-class Question03(Question):
+class Question04(Question):
 
     def __init__(self):
-        self.pos_graduacao = [
-            'LATO SENSU',
-            'MESTRADO',
-            'DOUTORADO',
-            'STRICTO SENSU',
-            'RESIDÊNCIA',
-        ]
+        self.outros_campi = {
+            'Jundiai': 'ESCOLA AGRÍCOLA DE JUNDIAÍ',
+            'Serido': 'CENTRO DE  ENSINO SUPERIOR DO SERIDÓ',
+            'Facisa': 'FACULDADE DE CIÊNCIAS DA SAÚDE DO TRAIRI - FACISA',
+        }
 
     def render(self, df):
-        st.markdown('# Evasão e Conclusão por nível de ensino')
-
-        niveis = ['TÉCNICO', 'GRADUAÇÃO', 'PÓS GRADUAÇÃO']
+        st.markdown('# Evasão e Conclusão por centro')
         dfs = []
 
-        for nivel in niveis:
-            df_nivel_ensino = self._calcular_percentuais_by_nivel_ensino(df.copy(), nivel)
-            df_nivel_ensino['nivel_ensino'] = nivel
-            dfs.append(df_nivel_ensino)
+        campis = {**self.outros_campi, **{'Natal': 'Natal',}}
+        for key, campus in campis.items():
+            df_campus = self._calcular_percentuais_by_campus(df.copy(), campus)
+            df_campus['nome_unidade'] = campus
+            dfs.append(df_campus)
 
         df_chart = pd.concat(dfs)
         df_chart['sexo'] = df_chart['sexo'].replace({
@@ -34,7 +31,7 @@ class Question03(Question):
         df_chart = df_chart.sort_values('percentual', ascending=False)
 
         alt_chart = alt.Chart(df_chart).mark_bar().encode(
-            x=alt.X('nivel_ensino:N', title=None),
+            x=alt.X('nome_unidade:N', title=None),
             y=alt.Y('sum(percentual):Q', stack=False, title='% dos ingressantes'),
             column=alt.Column('tipo:N', title=None),
             color=alt.Color('sexo', title='Gênero'),
@@ -45,16 +42,16 @@ class Question03(Question):
         )
         st.altair_chart(alt_chart)
 
-    def _calcular_percentuais_by_nivel_ensino(self, df, nivel_ensino):
-        if nivel_ensino == 'PÓS GRADUAÇÃO':
-            df_nivel_ensino = df[df.nivel_ensino.isin(self.pos_graduacao)]
+    def _calcular_percentuais_by_campus(self, df, campus):
+        if campus == 'Natal':
+            df_campus = df[~df.nome_unidade.isin(self.outros_campi)]
         else:
-            df_nivel_ensino = df[df.nivel_ensino == nivel_ensino]
+            df_campus = df[df.nome_unidade == campus]
 
-        df_evasao = df_nivel_ensino[df_nivel_ensino.status == 'CANCELADO']
-        df_concluintes = df_nivel_ensino[df_nivel_ensino.status == 'CONCLUÍDO']
+        df_evasao = df_campus[df_campus.status == 'CANCELADO']
+        df_concluintes = df_campus[df_campus.status == 'CONCLUÍDO']
 
-        return self._calcular_percentuais(df_nivel_ensino, df_evasao, df_concluintes)
+        return self._calcular_percentuais(df_campus, df_evasao, df_concluintes)
 
     def _calcular_percentuais(self, df_total, df_evasao, df_concluintes):
         evasao_por_sexo = df_evasao.groupby(by='sexo').count()['matricula']
