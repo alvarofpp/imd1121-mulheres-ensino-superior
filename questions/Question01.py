@@ -19,12 +19,12 @@ class Question01(Question):
         ]
 
     def render(self, df):
-        st.markdown("# Comparação no número de homens e mulheres ingressantes, por ano")
+        st.markdown('# Comparação no número de homens e mulheres ingressantes, por ano')
 
         col1, col2 = st.beta_columns(2)
         self.options = {
-            'nivel_ensino': col1.selectbox("Nível de Ensino", ['-', 'Graduação', 'Pós Graduação']),
-            'campus': col2.selectbox("Campus", ['-', 'Natal', 'Serido', 'Facisa', 'Jundiai']),
+            'nivel_ensino': col1.selectbox('Nível de Ensino', ['-', 'Graduação', 'Pós Graduação']),
+            'campus': col2.selectbox('Campus', ['-', 'Natal', 'Serido', 'Facisa', 'Jundiai']),
         }
 
         df_chart = self._filter_by_nivel_ensino(df, self.options['nivel_ensino'])
