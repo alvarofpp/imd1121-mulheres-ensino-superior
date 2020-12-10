@@ -16,11 +16,11 @@ class Question04(Question):
     def render(self, df):
         st.markdown('# Percentuais de discentes do sexo feminino e masculino, visto por centro e em relação a evasão e conclusão')
         dfs = []
+        df = df[df['nome_unidade_gestora'].notna()]
 
-        campis = {**self.outros_campi, **{'Natal': 'Natal', }}
-        for key, campus in campis.items():
-            df_campus = self._calcular_percentuais_by_campus(df.copy(), campus)
-            df_campus['nome_unidade'] = campus
+        for campus in df.nome_unidade_gestora.unique():
+            df_campus = self._calcular_percentuais_by_campus(df, campus)
+            df_campus['nome_unidade_gestora'] = campus
             dfs.append(df_campus)
 
         df_chart = pd.concat(dfs)
@@ -31,11 +31,11 @@ class Question04(Question):
             'M': 'Masculino',
         })
         df_chart['sort'] = abs(df_chart['percentual'])
-        df_chart['nome_unidade'] = df_chart['nome_unidade'].str.title()
+        df_chart['nome_unidade_gestora'] = df_chart['nome_unidade_gestora'].str.title()
         df_chart = df_chart.sort_values(['sort'], ascending=False)
 
-        alt_chart = alt.Chart(df_chart).mark_bar(size=50).encode(
-            x=alt.X('nome_unidade:N', title=None, axis=alt.Axis(zindex=10)),
+        alt_chart = alt.Chart(df_chart).mark_bar(size=30).encode(
+            x=alt.X('nome_unidade_gestora:N', title=None, axis=alt.Axis(zindex=10)),
             y=alt.Y('sum(percentual):Q', stack=False, title='% do total de discentes'),
             color=alt.Color('tipo:N', title='Status'),
             opacity=alt.condition('datum.sexo === "Diferença"', alt.value(0.7), alt.value(1.0)),
@@ -52,10 +52,7 @@ class Question04(Question):
         st.altair_chart(alt_chart + line, use_container_width=True)
 
     def _calcular_percentuais_by_campus(self, df, campus):
-        if campus == 'Natal':
-            df_campus = df[~df.nome_unidade.isin(self.outros_campi)]
-        else:
-            df_campus = df[df.nome_unidade == campus]
+        df_campus = df[df.nome_unidade_gestora == campus]
 
         df_evasao = df_campus[df_campus.status == 'CANCELADO']
         df_concluintes = df_campus[df_campus.status == 'CONCLUÍDO']
