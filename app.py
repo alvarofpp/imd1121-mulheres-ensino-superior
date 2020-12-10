@@ -46,7 +46,7 @@ def main():
 
     datasets = load_data()
     for question in [Question01(), Question02(), Question03(), Question04()]:
-        question.render(datasets['discentes'])
+        question.render(datasets['discentes'].copy())
 
 
 if __name__ == "__main__":

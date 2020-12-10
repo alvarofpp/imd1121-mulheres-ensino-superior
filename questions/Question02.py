@@ -1,4 +1,5 @@
 import altair as alt
+import pandas as pd
 import streamlit as st
 from questions import Question
 
@@ -17,35 +18,38 @@ class Question02(Question):
         }
 
     def render(self, df):
-        st.markdown('# Segundos ciclos IMD')
+        st.markdown('# Porcentagem de mulheres ingressantes, por ano de ingresso e ciclo do IMD')
 
-        self.options = {
-            'ciclo': st.selectbox('Ciclo', ['Primeiro', 'Segundo', ]),
-        }
-
-        df_graduacao = df.copy()[df.nivel_ensino == 'GRADUAÇÃO']
+        df_graduacao = df[df.nivel_ensino == 'GRADUAÇÃO']
         df_graduacao_natal = df_graduacao[~df_graduacao.nome_unidade.isin(self.outros_campi)]
 
-        df_chart = self._filter_by_ciclo(df_graduacao_natal, self.options['ciclo'])
-        df_chart['sexo'] = df_chart['sexo'].replace({
-            'F': 'Feminino',
-            'M': 'Masculino',
-        })
+        df_chart = self._filter_by_ciclo(df_graduacao_natal)
+        df_chart = self._comparar_ingressantes(df_chart)
+        df_chart = df_chart.reset_index()
 
         alt_chart = alt.Chart(df_chart).mark_bar().encode(
-            x=alt.X('sexo:O', title=None),
-            y=alt.Y('count(sexo):Q', title='Quantidade de ingressantes'),
-            color=alt.Color('sexo:N', title='Gênero'),
+            x=alt.X('ciclo:O', title=None),
+            y=alt.Y('porcentagem:Q', title='% de mulheres ingressantes'),
+            color=alt.Color('ciclo:N', title='Ciclo'),
             column=alt.Column('ano_ingresso:N', title='Ano de ingresso'),
-            tooltip=[alt.Tooltip('count(sexo):Q', title='Quantidade de ingressantes'), alt.Tooltip('sexo', title='Gênero'),]
-        )
+            tooltip=[
+                alt.Tooltip('ciclo', title='Ciclo'),
+                alt.Tooltip('sum(porcentagem):Q', title='% de ingressantes', format='.2f'),
+            ]
+        ).properties(width=47)
 
         st.altair_chart(alt_chart)
 
-    def _filter_by_ciclo(self, df, value):
-        df_filter = df[df.nome_curso.isin(self.ciclos[value.lower()])]
+    def _filter_by_ciclo(self, df):
+        df_primeiro = df[df.nome_curso.isin(self.ciclos['primeiro'])]
+        df_primeiro.loc[:, 'ciclo'] = 'Primeiro'
+        df_segundo = df[df.nome_curso.isin(self.ciclos['segundo'])]
+        df_segundo = df_segundo[df_segundo.ano_ingresso > 2013]
+        df_segundo.loc[:, 'ciclo'] = 'Segundo'
 
-        if value == 'Segundo':
-            df_filter = df_filter[df_filter.ano_ingresso > 2013]
+        return pd.concat([df_primeiro, df_segundo])
 
-        return df_filter
+    def _comparar_ingressantes(self, df):
+        valores = df.groupby(by=(['ciclo', 'ano_ingresso', 'sexo']))['sexo'].count().unstack()
+        valores.loc[:, 'porcentagem'] = valores['F']/(valores['F']+valores['M']) * 100
+        return valores

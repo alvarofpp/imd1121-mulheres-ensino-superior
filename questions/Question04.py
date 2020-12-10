@@ -14,33 +14,42 @@ class Question04(Question):
         }
 
     def render(self, df):
-        st.markdown('# Evasão e Conclusão por centro')
+        st.markdown('# Percentuais de discentes do sexo feminino e masculino, visto por centro e em relação a evasão e conclusão')
         dfs = []
 
-        campis = {**self.outros_campi, **{'Natal': 'Natal',}}
+        campis = {**self.outros_campi, **{'Natal': 'Natal', }}
         for key, campus in campis.items():
             df_campus = self._calcular_percentuais_by_campus(df.copy(), campus)
             df_campus['nome_unidade'] = campus
             dfs.append(df_campus)
 
         df_chart = pd.concat(dfs)
+        filter_f = df_chart['sexo'] == 'F'
+        df_chart.loc[filter_f, 'percentual'] = df_chart[filter_f]['percentual'] * -1
         df_chart['sexo'] = df_chart['sexo'].replace({
             'F': 'Feminino',
             'M': 'Masculino',
         })
-        df_chart = df_chart.sort_values('percentual', ascending=False)
+        df_chart['sort'] = abs(df_chart['percentual'])
+        df_chart['nome_unidade'] = df_chart['nome_unidade'].str.title()
+        df_chart = df_chart.sort_values(['sort'], ascending=False)
 
-        alt_chart = alt.Chart(df_chart).mark_bar().encode(
-            x=alt.X('nome_unidade:N', title=None),
-            y=alt.Y('sum(percentual):Q', stack=False, title='% dos ingressantes'),
-            column=alt.Column('tipo:N', title=None),
-            color=alt.Color('sexo', title='Gênero'),
+        alt_chart = alt.Chart(df_chart).mark_bar(size=50).encode(
+            x=alt.X('nome_unidade:N', title=None, axis=alt.Axis(zindex=10)),
+            y=alt.Y('sum(percentual):Q', stack=False, title='% do total de discentes'),
+            color=alt.Color('tipo:N', title='Status'),
+            opacity=alt.condition('datum.sexo === "Diferença"', alt.value(0.7), alt.value(1.0)),
             tooltip=[
-                alt.Tooltip('sexo', title='Gênero'),
-                alt.Tooltip('sum(percentual):Q', title='% dos ingressantes')
+                alt.Tooltip('sexo:N', title='Gênero'),
+                alt.Tooltip('sum(percentual):Q', title='% referente ao total', format='.2f'),
+                alt.Tooltip('tipo:N', title='Status'),
+                alt.Tooltip('total:Q', title='Quantidade'),
             ],
-        )
-        st.altair_chart(alt_chart)
+        ).properties(height=600)
+
+        line = alt.Chart(pd.DataFrame({'y': [0]})).mark_rule().encode(y='y')
+
+        st.altair_chart(alt_chart + line, use_container_width=True)
 
     def _calcular_percentuais_by_campus(self, df, campus):
         if campus == 'Natal':
@@ -59,34 +68,19 @@ class Question04(Question):
 
         sexos = ['F', 'M']
         dados = []
-        dados_diff = {}
 
         for sexo in sexos:
+            total = df_total[df_total['sexo'] == sexo].shape[0]
+            percent = total / df_total.shape[0] * 100
+
             evasao_total = evasao_por_sexo.loc[sexo]
-            evasao_percent = evasao_por_sexo.loc[sexo] / evasao_por_sexo.sum() * 100
+            evasao_percent = evasao_total / df_total.shape[0] * 100
 
             concluintes_total = concluintes_por_sexo.loc[sexo]
-            concluintes_percent = concluintes_por_sexo.loc[sexo] / concluintes_por_sexo.sum() * 100
+            concluintes_percent = concluintes_total / df_total.shape[0] * 100
 
+            dados.append([sexo, total, percent, 'Total'])
             dados.append([sexo, evasao_total, evasao_percent, 'Evasão'])
             dados.append([sexo, concluintes_total, concluintes_percent, 'Conclusão'])
-            dados_diff[sexo] = {
-                'concluintes_total': concluintes_total,
-                'concluintes_percent': concluintes_percent,
-                'evasao_total': evasao_total,
-                'evasao_percent': evasao_percent,
-            }
-        df_sexo = pd.DataFrame(data=dados, columns=['sexo', 'total', 'percentual', 'tipo'])
-        df_sexo = df_sexo.append({
-            'sexo': 'Diferença',
-            'total': abs(dados_diff['M']['evasao_total'] - dados_diff['F']['evasao_total']),
-            'percentual': abs(dados_diff['M']['evasao_percent'] - dados_diff['F']['evasao_percent']),
-            'tipo': 'Evasão',
-        }, ignore_index=True)
 
-        return df_sexo.append({
-            'sexo': 'Diferença',
-            'total': abs(dados_diff['M']['concluintes_total'] - dados_diff['F']['concluintes_total']),
-            'percentual': abs(dados_diff['M']['concluintes_percent'] - dados_diff['F']['concluintes_percent']),
-            'tipo': 'Conclusão',
-        }, ignore_index=True)
+        return pd.DataFrame(data=dados, columns=['sexo', 'total', 'percentual', 'tipo'])

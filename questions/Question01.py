@@ -20,13 +20,13 @@ class Question01(Question):
         ]
 
     def render(self, df):
-        st.markdown('# Comparação no número de homens e mulheres ingressantes, por ano e por unidade')
+        st.markdown('# Porcentagem de mulheres ingressantes, por ano e por campus, em programas de graduação e pós graduação da UFRN')
 
         self.options = {
             'nivel_ensino': st.selectbox('Nível de Ensino', ['-', 'Graduação', 'Pós Graduação']),
         }
 
-        df_chart = self._filter_by_nivel_ensino(df.copy(), self.options['nivel_ensino'])
+        df_chart = self._filter_by_nivel_ensino(df, self.options['nivel_ensino'])
         df_natal = ~df_chart['nome_unidade'].isin(list(self.outros_campi.values()))
         df_chart.loc[df_natal, 'nome_unidade'] = 'Natal'
         df_chart['nome_unidade'] = df_chart['nome_unidade'].str.title()
@@ -35,13 +35,13 @@ class Question01(Question):
         df_chart = df_chart.reset_index()
 
         alt_chart = alt.Chart(df_chart).mark_line(point=True).encode(
-            x=alt.X('ano_ingresso:N', title='Ano'),
-            y=alt.Y('sum(porcentagem):Q', title='Porcentagem de mulheres ingressantes'),
-            color=alt.Color('nome_unidade:N', title='Unidade'),
+            x=alt.X('ano_ingresso:N', title='Ano de ingresso'),
+            y=alt.Y('sum(porcentagem):Q', title='% de mulheres ingressantes'),
+            color=alt.Color('nome_unidade:N', title='Campus'),
             tooltip=[
-                alt.Tooltip('nome_unidade', title='Unidade'),
+                alt.Tooltip('nome_unidade', title='Campus'),
                 alt.Tooltip('ano_ingresso', title='Ano'),
-                alt.Tooltip('sum(porcentagem):Q', title='% de mulheres ingressantes'),
+                alt.Tooltip('sum(porcentagem):Q', title='% de mulheres ingressantes', format='.2f'),
                 alt.Tooltip('F', title='Quantidade'),
             ]
         )
@@ -58,5 +58,5 @@ class Question01(Question):
 
     def _comparar_ingressantes(self, df):
         valores = df.groupby(by=(['ano_ingresso', 'nome_unidade', 'sexo']))['sexo'].count().unstack()
-        valores['porcentagem'] = valores['F']/(valores['F']+valores['M']) * 100
+        valores.loc[:, 'porcentagem'] = valores['F']/(valores['F']+valores['M']) * 100
         return valores
