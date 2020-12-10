@@ -23,7 +23,7 @@ class Question02(Question):
             'ciclo': st.selectbox('Ciclo', ['Primeiro', 'Segundo', ]),
         }
 
-        df_graduacao = df[df.nivel_ensino == 'GRADUAÇÃO']
+        df_graduacao = df.copy()[df.nivel_ensino == 'GRADUAÇÃO']
         df_graduacao_natal = df_graduacao[~df_graduacao.nome_unidade.isin(self.outros_campi)]
 
         df_chart = self._filter_by_ciclo(df_graduacao_natal, self.options['ciclo'])
@@ -35,7 +35,7 @@ class Question02(Question):
         alt_chart = alt.Chart(df_chart).mark_bar().encode(
             x=alt.X('sexo:O', title=None),
             y=alt.Y('count(sexo):Q', title='Quantidade de ingressantes'),
-            color='sexo:N',
+            color=alt.Color('sexo:N', title='Gênero'),
             column=alt.Column('ano_ingresso:N', title='Ano de ingresso'),
             tooltip=[alt.Tooltip('count(sexo):Q', title='Quantidade de ingressantes'), alt.Tooltip('sexo', title='Gênero'),]
         )
