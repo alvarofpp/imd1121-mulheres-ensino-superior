@@ -1,3 +1,4 @@
+import altair as alt
 import streamlit as st
 from questions import Question
 
@@ -19,19 +20,33 @@ class Question01(Question):
         ]
 
     def render(self, df):
-        st.markdown('# Comparação no número de homens e mulheres ingressantes, por ano')
+        st.markdown('# Comparação no número de homens e mulheres ingressantes, por ano e por unidade')
 
-        col1, col2 = st.beta_columns(2)
         self.options = {
-            'nivel_ensino': col1.selectbox('Nível de Ensino', ['-', 'Graduação', 'Pós Graduação']),
-            'campus': col2.selectbox('Campus', ['-', 'Natal', 'Serido', 'Facisa', 'Jundiai']),
+            'nivel_ensino': st.selectbox('Nível de Ensino', ['-', 'Graduação', 'Pós Graduação']),
         }
 
-        df_chart = self._filter_by_nivel_ensino(df, self.options['nivel_ensino'])
-        df_chart = self._filter_by_campus(df_chart, self.options['campus'])
-        if not df_chart.empty:
-            df_result = self._comparar_ingressantes(df_chart)
-            st.dataframe(df_result)
+        df_chart = self._filter_by_nivel_ensino(df.copy(), self.options['nivel_ensino'])
+        df_natal = ~df_chart['nome_unidade'].isin(list(self.outros_campi.values()))
+        df_chart.loc[df_natal, 'nome_unidade'] = 'Natal'
+        df_chart['nome_unidade'] = df_chart['nome_unidade'].str.title()
+
+        df_chart = self._comparar_ingressantes(df_chart)
+        df_chart = df_chart.reset_index()
+
+        alt_chart = alt.Chart(df_chart).mark_line(point=True).encode(
+            x=alt.X('ano_ingresso:N', title='Ano'),
+            y=alt.Y('sum(porcentagem):Q', title='Porcentagem de mulheres ingressantes'),
+            color=alt.Color('nome_unidade:N', title='Unidade'),
+            tooltip=[
+                alt.Tooltip('nome_unidade', title='Unidade'),
+                alt.Tooltip('ano_ingresso', title='Ano'),
+                alt.Tooltip('sum(porcentagem):Q', title='% de mulheres ingressantes'),
+                alt.Tooltip('F', title='Quantidade'),
+            ]
+        )
+
+        st.altair_chart(alt_chart, use_container_width=True)
 
     def _filter_by_nivel_ensino(self, df, value):
         if value == 'Pós Graduação':
@@ -41,15 +56,7 @@ class Question01(Question):
 
         return df
 
-    def _filter_by_campus(self, df, value):
-        if value == 'Natal':
-            return df[~df.nome_unidade.isin(list(self.outros_campi.values()))]
-        elif value in ['Jundiai', 'Serido', 'Facisa',]:
-            return df[df.nome_unidade == self.outros_campi[value]]
-
-        return df
-
     def _comparar_ingressantes(self, df):
-        valores = df.groupby(by=(['ano_ingresso', 'sexo']))['sexo'].count().unstack()
+        valores = df.groupby(by=(['ano_ingresso', 'nome_unidade', 'sexo']))['sexo'].count().unstack()
         valores['porcentagem'] = valores['F']/(valores['F']+valores['M']) * 100
         return valores
