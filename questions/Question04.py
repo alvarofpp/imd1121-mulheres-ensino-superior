@@ -44,6 +44,13 @@ class Question04(Question):
         df_chart['sort'] = abs(df_chart['percentual'])
         df_chart['nome_unidade_gestora'] = df_chart['nome_unidade_gestora'].str.title()
         df_chart = df_chart.sort_values(['sort'], ascending=False)
+        df_chart = df_chart.reset_index(drop=True)
+
+        for name, group in df_chart.groupby(by=['nome_unidade_gestora', 'sexo']):
+            indexes = list(group.index)
+            df_chart.at[indexes[0], 'size'] = 100
+            df_chart.at[indexes[1], 'size'] = 75
+            df_chart.at[indexes[2], 'size'] = 50
 
         alt_chart = alt.Chart(df_chart).mark_bar(size=30).encode(
             x=alt.X('nome_unidade_gestora:N', title=None, axis=alt.Axis(zindex=10)),
@@ -52,7 +59,8 @@ class Question04(Question):
                             scale=alt.Scale(domain=['Evasão', 'Conclusão', 'Total'],
                                             range=['#fd8060', '#b0d8a4', '#fee191'])
                             ),
-            opacity=alt.condition('datum.sexo === "Diferença"', alt.value(0.7), alt.value(1.0)),
+            size=alt.Size('size:Q', legend=None, scale=alt.Scale(domain=[0, 80])),
+            order=alt.Order('sort', sort='descending'),
             tooltip=[
                 alt.Tooltip('sexo:N', title='Gênero'),
                 alt.Tooltip('sum(percentual):Q', title='% referente ao total', format='.2f'),

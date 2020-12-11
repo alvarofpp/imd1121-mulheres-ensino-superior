@@ -7,9 +7,9 @@ class Question01(Question):
 
     def __init__(self):
         self.outros_campi = {
-            'Jundiai' : 'ESCOLA AGRÍCOLA DE JUNDIAÍ',
-            'Serido' : 'CENTRO DE  ENSINO SUPERIOR DO SERIDÓ',
-            'Facisa' : 'FACULDADE DE CIÊNCIAS DA SAÚDE DO TRAIRI - FACISA',
+            'Jundiai': 'ESCOLA AGRÍCOLA DE JUNDIAÍ',
+            'Serido': 'CENTRO DE  ENSINO SUPERIOR DO SERIDÓ',
+            'Facisa': 'FACULDADE DE CIÊNCIAS DA SAÚDE DO TRAIRI - FACISA',
         }
         self.pos_graduacao = [
             'LATO SENSU',
@@ -20,7 +20,8 @@ class Question01(Question):
         ]
 
     def render(self, df):
-        st.markdown('# Porcentagem de mulheres ingressantes, por ano e por campus, em programas de graduação e pós graduação da UFRN')
+        st.markdown(
+            '# Porcentagem de mulheres ingressantes, por ano e por campus, em programas de graduação e pós graduação da UFRN')
 
         self.options = {
             'nivel_ensino': st.selectbox('Nível de Ensino', ['-', 'Graduação', 'Pós Graduação']),
@@ -37,7 +38,13 @@ class Question01(Question):
         alt_chart = alt.Chart(df_chart).mark_line(point=True).encode(
             x=alt.X('ano_ingresso:N', title='Ano de ingresso'),
             y=alt.Y('sum(porcentagem):Q', title='% de mulheres ingressantes'),
-            color=alt.Color('nome_unidade:N', title='Campus'),
+            color=alt.Color('nome_unidade:N', title='Campus',
+                            scale=alt.Scale(
+                                domain=['Natal', 'Faculdade De Ciências Da Saúde Do Trairi - Facisa',
+                                        'Escola Agrícola De Jundiaí', 'Centro De  Ensino Superior Do Seridó'],
+                                range=['#5EBCB4', '#F33A4A', '#FF8100', '#4A70AA']
+                            )),
+
             tooltip=[
                 alt.Tooltip('nome_unidade', title='Campus'),
                 alt.Tooltip('ano_ingresso', title='Ano'),
@@ -58,5 +65,5 @@ class Question01(Question):
 
     def _comparar_ingressantes(self, df):
         valores = df.groupby(by=(['ano_ingresso', 'nome_unidade', 'sexo']))['sexo'].count().unstack()
-        valores.loc[:, 'porcentagem'] = valores['F']/(valores['F']+valores['M']) * 100
+        valores.loc[:, 'porcentagem'] = valores['F'] / (valores['F'] + valores['M']) * 100
         return valores

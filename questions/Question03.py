@@ -43,8 +43,10 @@ class Question03(Question):
             'M': 'Masculino',
         })
         df_chart['nivel_ensino'] = df_chart['nivel_ensino'].str.title()
+        df_chart.loc[df_chart['sexo'].isin(['Feminino', 'Masculino']), 'size'] = 100
+        df_chart.loc[df_chart['sexo'].isin(['Diferença']), 'size'] = 50
 
-        alt_chart = alt.Chart(df_chart).mark_bar(size=50).transform_calculate(
+        alt_chart = alt.Chart(df_chart).mark_bar().transform_calculate(
             order='if(datum.sexo === "Feminino", 0, if(datum.sexo === "Masculino", 1, 2))'
         ).encode(
             x=alt.X('nivel_ensino:N', title=None),
@@ -54,6 +56,7 @@ class Question03(Question):
                             scale=alt.Scale(domain=['Diferença', 'Feminino', 'Masculino'],
                                             range=['#f6c85f', '#6f4e7c', '#0b84a5'])
                             ),
+            size=alt.Size('size:Q', legend=None, scale=alt.Scale(domain=[0, 40])),
             tooltip=[
                 alt.Tooltip('sexo', title='Gênero'),
                 alt.Tooltip('sum(percentual):Q', title='% dos ingressantes', format='.2f')
