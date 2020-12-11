@@ -14,7 +14,18 @@ class Question04(Question):
         }
 
     def render(self, df):
-        st.markdown('# Percentuais de discentes do sexo feminino e masculino, visto por centro e em relação a evasão e conclusão')
+        st.markdown(
+            '# Percentual de homens e mulheres que ingressaram, evadiram e concluíram, em cada centro da graduação da UFRN')
+        st.markdown(
+            'O gráfico a seguir retrata o percentual de discentes dos sexos feminino e masculino.')
+        st.markdown('#### Como interpretar o gráfico')
+        st.markdown('''
+                - Cada barra representa os valores para um dos centros de ensino dos cursos de graduação da UFRN, campus Natal;
+                - Na parte superior do gráfico está representado o percentual de discentes do sexo masculino, enquanto na parte inferior está expresso o percentual de discentes do sexo feminino.
+                ''')
+        st.markdown(
+            '**Observação**: é importante ressaltar que os valores negativos no eixo y ("% do total de discentes"), quando estamos observando o percentual de discentes do sexo feminino, não indica um valor negativo em si - esse formato foi utilizado por limitações da ferramenta.')
+
         dfs = []
         df = df[df['nome_unidade_gestora'].notna()]
 
@@ -37,7 +48,10 @@ class Question04(Question):
         alt_chart = alt.Chart(df_chart).mark_bar(size=30).encode(
             x=alt.X('nome_unidade_gestora:N', title=None, axis=alt.Axis(zindex=10)),
             y=alt.Y('sum(percentual):Q', stack=False, title='% do total de discentes'),
-            color=alt.Color('tipo:N', title='Status'),
+            color=alt.Color('tipo:N', title='Status',
+                            scale=alt.Scale(domain=['Evasão', 'Conclusão', 'Total'],
+                                            range=['#fd8060', '#b0d8a4', '#fee191'])
+                            ),
             opacity=alt.condition('datum.sexo === "Diferença"', alt.value(0.7), alt.value(1.0)),
             tooltip=[
                 alt.Tooltip('sexo:N', title='Gênero'),

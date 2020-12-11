@@ -17,13 +17,15 @@ class Question03(Question):
 
     def render(self, df):
         st.markdown('# Percentual de homens e mulheres que evadiram e concluíram, em cada nível de ensino')
-        st.markdown('O gráfico a seguir retrata o percentual de discentes do sexo feminino e de discentes do sexo masculino, como também a diferença entre esses dois percentuais.')
+        st.markdown(
+            'O gráfico a seguir retrata o percentual de discentes dos sexos feminino e masculino, como também a diferença entre esses dois percentuais.')
         st.markdown('#### Como interpretar o gráfico')
         st.markdown('''
-        - Na parte superior do gráfico (em vermelho) está representado o percentual de discentes do sexo masculino, enquanto na parte inferior está expresso o percentual de discentes do sexo feminino;
-        - Em azul está representada a diferença: se o retângulo referente à diferença estiver na parte inferior do gráfico, significa que a diferença entre os percentuais é negativa (há menos homens do que mulheres), e vice versa.
+        - Na parte superior do gráfico está representado o percentual de discentes do sexo masculino, enquanto na parte inferior está expresso o percentual de discentes do sexo feminino;
+        - Em amarelo está representada a diferença: se o retângulo referente à diferença estiver na parte inferior do gráfico, significa que a diferença entre os percentuais é negativa (há menos homens do que mulheres), e vice versa.
         ''')
-        st.markdown('**Observação**: é importante ressaltar que os valores negativos no eixo y, quando estamos observando o percentual de discentes do sexo feminino, não indica um valor negativo em si - esse formato foi utilizado por limitações da ferramenta..')
+        st.markdown(
+            '**Observação**: é importante ressaltar que os valores negativos no eixo y ("% dos ingressantes"), quando estamos observando o percentual de discentes do sexo feminino, não indica um valor negativo em si - esse formato foi utilizado por limitações da ferramenta.')
 
         niveis = ['TÉCNICO', 'GRADUAÇÃO', 'PÓS GRADUAÇÃO']
         dfs = []
@@ -48,7 +50,10 @@ class Question03(Question):
             x=alt.X('nivel_ensino:N', title=None),
             y=alt.Y('sum(percentual):Q', stack=False, title='% dos ingressantes'),
             column=alt.Column('tipo:N', title=None),
-            color=alt.Color('sexo', title='Gênero'),
+            color=alt.Color('sexo', title='Gênero',
+                            scale=alt.Scale(domain=['Diferença', 'Feminino', 'Masculino'],
+                                            range=['#f6c85f', '#6f4e7c', '#0b84a5'])
+                            ),
             tooltip=[
                 alt.Tooltip('sexo', title='Gênero'),
                 alt.Tooltip('sum(percentual):Q', title='% dos ingressantes', format='.2f')
