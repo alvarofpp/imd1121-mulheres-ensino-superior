@@ -36,11 +36,9 @@ def main():
     st.markdown('Com isso em mente, o presente trabalho tem como objetivo realizar uma análise minuciosa sobre a representatividade feminina no ensino superior, tendo como corte a UFRN, de forma que possa incentivar o debate sobre representatividade feminina dentro da própria instituição.')
 
     st.markdown('# Pesquisa de base de dados')
-    st.markdown('Inicialmente, realizamos pesquisas em bases de dados nacionais da educação, como dados do Instituto Nacional de Estudos e Pesquisas Educacionais (INEP), da Universidade Federal do Rio Grande do Norte (UFRN) e da Universidade Federal do Ceará. Porém, definimos o escopo do nosso projeto como sendo a UFRN, então selecionamos três bases de dados dos [dados abertos da UFRN](http://dados.ufrn.br/):')
+    st.markdown('Inicialmente, realizamos pesquisas em bases de dados nacionais da educação, como dados do Instituto Nacional de Estudos e Pesquisas Educacionais (INEP), da Universidade Federal do Rio Grande do Norte (UFRN) e da Universidade Federal do Ceará. Porém, definimos o escopo do nosso projeto como sendo a UFRN, então selecionamos uma base de dados dos [dados abertos da UFRN](http://dados.ufrn.br/) que atendia às nossas necessidades:')
     st.markdown("""
-    - [Discentes](http://dados.ufrn.br/dataset/discentes);
-    - [Bolsas de Apoio](http://dados.ufrn.br/dataset/bolsas-de-apoio);
-    - [Bolsas de Iniciação Científica](http://dados.ufrn.br/dataset/bolsistas-de-iniciacao-cientifica).
+    - [Discentes](http://dados.ufrn.br/dataset/discentes).
     """)
     st.markdown('----------')
 
