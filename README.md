@@ -1,3 +1,5 @@
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/alvarofpp/imd1121-women-ufrn/main/app.py)
+
 # Mulheres no Ensino Superior da UFRN
 
 Trabalho realizado por:
